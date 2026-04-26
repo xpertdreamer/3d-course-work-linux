@@ -5,11 +5,13 @@
 pkgs.mkShell {
   packages = with pkgs; [
     clang-tools
+    gdb
     codespell
     cppcheck
     pkg-config
     cmake
     glfw
+    glm
     libGL
     libxkbcommon
   ];

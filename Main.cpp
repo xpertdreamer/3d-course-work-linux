@@ -22,7 +22,9 @@ int main() {
     GLFWwindow *window =
         glfwCreateWindow(800, 600, "3d-course-work", NULL, NULL);
     if (window == NULL) {
-        std::cout << "Failed to create window" << std::endl;
+        const char *description;
+        glfwGetError(&description);
+        std::cout << "Failed to create window" << description << std::endl;
         glfwTerminate();
         return -1;
     }
@@ -36,16 +38,13 @@ int main() {
      * Fourth - swap the back and front buffers
      */
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-    //    gladLoadGL();
-
     glViewport(0, 0, 800, 600);
-
-    glClearColor(0.7f, 0.13f, 0.17f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glfwSwapBuffers(window);
 
     // Just a main loop to handle events
     while (!glfwWindowShouldClose(window)) {
+        glClearColor(0.996f, 0.996f, 0.874f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
