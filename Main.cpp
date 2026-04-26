@@ -1,4 +1,6 @@
+#include "Texture.h"
 #include "include/glad/glad.h"
+#include "include/stb/stb_image.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <math.h>
@@ -13,26 +15,17 @@
 
 // Vertices coordinates
 GLfloat vertices[] = {
-    //               COORDINATES                  /     COLORS           //
-    -0.5f,  -0.5f * float(sqrt(3)) * 1 / 3, 0.0f, 0.8f, 0.3f,
-    0.02f, // Lower left corner
-    0.5f,   -0.5f * float(sqrt(3)) * 1 / 3, 0.0f, 0.8f, 0.3f,
-    0.02f, // Lower right corner
-    0.0f,   0.5f * float(sqrt(3)) * 2 / 3,  0.0f, 1.0f, 0.6f,
-    0.32f, // Upper corner
-    -0.25f, 0.5f * float(sqrt(3)) * 1 / 6,  0.0f, 0.9f, 0.45f,
-    0.17f, // Inner left
-    0.25f,  0.5f * float(sqrt(3)) * 1 / 6,  0.0f, 0.9f, 0.45f,
-    0.17f, // Inner right
-    0.0f,   -0.5f * float(sqrt(3)) * 1 / 3, 0.0f, 0.8f, 0.3f,
-    0.02f // Inner down
+    //     COORDINATES     /        COLORS      /   TexCoord  //
+    -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Lower left corner
+    -0.5f, 0.5f,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // Upper left corner
+    0.5f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // Upper right corner
+    0.5f,  -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f  // Lower right corner
 };
 
 // Indices for vertices order
 GLuint indices[] = {
-    0, 3, 5, // Lower left triangle
-    3, 2, 4, // Lower right triangle
-    5, 4, 1  // Upper triangle
+    0, 2, 1, // Upper triangle
+    0, 3, 2  // Lower triangle
 };
 
 int main() {
@@ -73,7 +66,8 @@ int main() {
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glViewport(0, 0, W_WIDTH, W_HEIGHT);
 
-    Shader shaderProgram("../default.vert", "../default.frag");
+    Shader shaderProgram("../Resources/Shaders/default.vert",
+                         "../Resources/Shaders/default.frag");
     // Generates Vertex Array Object and binds it
     VAO VAO1;
     VAO1.Bind();
@@ -84,15 +78,23 @@ int main() {
     EBO EBO1(indices, sizeof(indices));
 
     // Links VBO attributtes such as coord and color to VAO
-    VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void *)0);
-    VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float),
+    VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), (void *)0);
+    VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float),
                     (void *)(3 * sizeof(float)));
+    VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float),
+                    (void *)(6 * sizeof(float)));
     // Unbind all to prevent accidentally modifying them
     VAO1.Unbind();
     VBO1.Unbind();
     EBO1.Unbind();
 
+    // Gets ID of uniform called "scale"
     GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
+
+    // Texture
+    Texture popCat("../Resources/Textures/pop_cat.png", GL_TEXTURE_2D,
+                   GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
+    popCat.texUnit(shaderProgram, "tex0", 0);
 
     // Just a main loop to handle events
     while (!glfwWindowShouldClose(window)) {
@@ -100,8 +102,9 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
         shaderProgram.Activate();
         glUniform1f(uniID, 0.5f);
+        popCat.Bind();
         VAO1.Bind();
-        glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -110,6 +113,7 @@ int main() {
     VAO1.Delete();
     VBO1.Delete();
     EBO1.Delete();
+    popCat.Delete();
     shaderProgram.Delete();
     glfwDestroyWindow(window);
     glfwTerminate();
