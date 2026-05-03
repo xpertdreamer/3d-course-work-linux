@@ -11,7 +11,6 @@
 #define W_WIDTH 1920
 #define W_HEIGHT 1080
 
-
 // Vertices coordinates
 Vertex vertices[] =
 {
@@ -123,7 +122,7 @@ int main() {
     {
     Texture
     (
-        "../Resources/Textures/pop_cat.png",
+        "../Resources/Textures/pop.png",
         GL_TEXTURE_2D,
         GL_TEXTURE0,
         GL_RGBA,
