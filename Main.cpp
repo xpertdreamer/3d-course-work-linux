@@ -11,6 +11,7 @@
 #include "VAO.h"
 #include "VBO.h"
 #include "shaderClass.h"
+#include "Camera.hpp"
 
 #define W_WIDTH 800
 #define W_HEIGHT 800
@@ -86,18 +87,15 @@ int main() {
     VBO1.Unbind();
     EBO1.Unbind();
 
-    // Gets ID of uniform called "scale"
-    GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
-
     // Texture
     Texture popCat("../Resources/Textures/pop_cat.png", GL_TEXTURE_2D,
                    GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
     popCat.texUnit(shaderProgram, "tex0", 0);
 
-    float rotation = 0.0f;
-    double prevTime = glfwGetTime();
-
     glEnable(GL_DEPTH_TEST);
+
+    float pos[3] = {0.f, 0.f, 2.f};
+    Camera camera(W_WIDTH, W_HEIGHT, pos); 
 
     // Just a main loop to handle events
     while (!glfwWindowShouldClose(window)) {
@@ -105,30 +103,8 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         shaderProgram.Activate();
 
-        double crntTime = glfwGetTime();
-        if (crntTime - prevTime >= 1 / 60) {
-            rotation += 0.5f;
-            prevTime = crntTime;
-        }
-
-        matrix4 model = createIdentityMatrix();
-        matrix4 view = createIdentityMatrix();
-        matrix4 proj = createIdentityMatrix();
-        model = multiplyMatrices(model,
-                                 createRotationMatrixY(glm::radians(rotation)));
-        view =
-            multiplyMatrices(view, createTranslationMatrix(0.0f, -0.5f, -2.0f));
-        proj = createPerspectiveMatrix(
-            glm::radians(45.0f), (float)(W_WIDTH / W_HEIGHT), 0.1f, 100.0f);
-
-        int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.data());
-        int viewLoc = glGetUniformLocation(shaderProgram.ID, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view.data());
-        int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, proj.data());
-
-        glUniform1f(uniID, 0.5f);
+        camera.Matrix(45.f, 0.1f, 100.f, shaderProgram, "camMatrix");
+        
         popCat.Bind();
         VAO1.Bind();
         glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int),

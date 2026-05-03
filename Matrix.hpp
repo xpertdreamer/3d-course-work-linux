@@ -50,4 +50,26 @@ inline matrix4 createPerspectiveMatrix(float fovRadians, float aspect,
     return result;
 }
 
+// В matrix.h добавляем:
+inline float dot(const float a[3], const float b[3]) {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+inline void cross(const float a[3], const float b[3], float result[3]) {
+    result[0] = a[1] * b[2] - a[2] * b[1];
+    result[1] = a[2] * b[0] - a[0] * b[2];
+    result[2] = a[0] * b[1] - a[1] * b[0];
+}
+
+inline void normalize(float v[3]) {
+    float len = std::sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+    v[0] /= len; v[1] /= len; v[2] /= len;
+}
+
+inline void subtract(const float a[3], const float b[3], float result[3]) {
+    result[0] = a[0] - b[0];
+    result[1] = a[1] - b[1];
+    result[2] = a[2] - b[2];
+}
+
 #endif
