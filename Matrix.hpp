@@ -71,6 +71,7 @@ inline void subtract(const float a[3], const float b[3], float result[3]) {
     result[2] = a[2] - b[2];
 }
 
+// Rodriges formula
 inline void rotateVector(const float v[3], const float axis[3], float angleRad, float result[3]) {
     float cosA = std::cos(angleRad);
     float sinA = std::sin(angleRad);

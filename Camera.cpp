@@ -12,6 +12,11 @@ Camera::Camera(int width, int height, float position[3])
         Position[i] = position[i];
 }
 
+/*
+ * Here i have the lookAt manual implementation
+ * I dont realy know if its the need but for now its here
+ * Thanks to some brave StackOverflow user for showing it
+ */
 void Camera::Matrix
 (
     float FOVdeg,
