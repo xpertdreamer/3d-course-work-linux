@@ -104,7 +104,9 @@ int main() {
         shaderProgram.Activate();
 
         camera.Inputs(window);
-        camera.Matrix(45.f, 0.1f, 100.f, shaderProgram, "camMatrix");
+        camera.updateMatrix(45.f, 0.1f, 100.f);
+
+        camera.Matrix(shaderProgram, "camMatrix");
         
         popCat.Bind();
         VAO1.Bind();

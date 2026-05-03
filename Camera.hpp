@@ -1,6 +1,7 @@
 #ifndef CAMERA_H_
 #define CAMERA_H_
 
+#include "Matrix.hpp"
 #include "include/glad/glad.h"
 #include <GLFW/glfw3.h>
 
@@ -13,11 +14,12 @@ class Camera
         float Position[3];
         float Orientation[3] = {0.f, 0.f, -1.f};
         float Up[3] = {0.f, 1.f, 0.f};
+        matrix4 cameraMatrix = createIdentityMatrix();
 
         int width;
         int height;
 
-        float speed = 0.1f;
+        float speed = 0.01f;
         float sensitivity = 1.f;
 
         bool firstClick;
@@ -29,11 +31,15 @@ class Camera
             float position[3]
         );
 
-        void Matrix
+        void updateMatrix
         (
-            float FOVdeg,
+            float FOVdeg,         
             float nearPlane,
-            float farPlane,
+            float farPlane
+         );
+        
+        void Matrix
+        (    
             Shader& shader,
             const char* uniform
          );

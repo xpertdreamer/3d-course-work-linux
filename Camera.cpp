@@ -12,18 +12,11 @@ Camera::Camera(int width, int height, float position[3])
         Position[i] = position[i];
 }
 
-/*
- * Here i have the lookAt manual implementation
- * I dont realy know if its the need but for now its here
- * Thanks to some brave StackOverflow user for showing it
- */
-void Camera::Matrix
+void Camera::updateMatrix
 (
-    float FOVdeg,
+    float FOVdeg,         
     float nearPlane,
-    float farPlane,
-    Shader& shader,
-    const char* uniform
+    float farPlane
 )
 {
     matrix4 projection = createIdentityMatrix();
@@ -53,7 +46,21 @@ void Camera::Matrix
         -dot(s, Position), -dot(u, Position), dot(f, Position), 1.0f
     };
 
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, multiplyMatrices(projection, view).data());
+    cameraMatrix = multiplyMatrices(projection, view);
+}
+
+/*
+ * Here i have the lookAt manual implementation
+ * I dont realy know if its the need but for now its here
+ * Thanks to some brave StackOverflow user for showing it
+ */
+void Camera::Matrix
+(
+    Shader& shader,
+    const char* uniform
+)
+{
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, cameraMatrix.data());
 }
 
 void Camera::Inputs
