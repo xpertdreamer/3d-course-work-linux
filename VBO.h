@@ -9,7 +9,7 @@ struct Vertex {
     float position[3];
     float normal[3];
     float color[3];
-    float texCoord[2];
+    float texUv[2];
     
     Vertex() {}
     
@@ -21,8 +21,8 @@ struct Vertex {
             normal[i] = norm[i];
             color[i] = col[i];
         }
-        texCoord[0] = tex[0];
-        texCoord[1] = tex[1];
+        texUv[0] = tex[0];
+        texUv[1] = tex[1];
     }
 };
 
