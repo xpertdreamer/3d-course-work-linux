@@ -31,6 +31,30 @@ inline matrix4 createRotationMatrixY(float angleRadians) {
             -sinA, 0.0f, cosA, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 }
 
+inline matrix4 createRotationMatrixX(float angleRadians) {
+    float cosA = std::cos(angleRadians);
+    float sinA = std::sin(angleRadians);
+
+    return {
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, cosA, -sinA, 0.0f,
+        0.0f, sinA, cosA, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    };
+}
+
+inline matrix4 createRotationMatrixZ(float angleRadians) {
+    float cosA = std::cos(angleRadians);
+    float sinA = std::sin(angleRadians);
+
+    return {
+        cosA, -sinA, 0.0f, 0.0f,
+        sinA, cosA, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    };
+}
+
 inline matrix4 createTranslationMatrix(float x, float y, float z) {
     return {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
             0.0f, 0.0f, 1.0f, 0.0f, x,    y,    z,    1.0f};
@@ -47,6 +71,15 @@ inline matrix4 createPerspectiveMatrix(float fovRadians, float aspect,
     result[11] = -1.0f;
     result[14] = -(2.0f * far * near) / (far - near);
 
+    return result;
+}
+
+inline matrix4 createScaleMatrix(float x, float y, float z) {
+    matrix4 result{};
+    result[0] = x;
+    result[5] = y;
+    result[10] = z;
+    result[15] = 1.0f;
     return result;
 }
 
