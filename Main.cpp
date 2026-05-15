@@ -1,6 +1,8 @@
+#include <glm/glm.hpp>
 #include "Mesh.h"
 #include "Camera.hpp"
 #include "Matrix.hpp"
+#include "Model.h"
 #include "Texture.h"
 #include "shaderClass.h"
 #include "VBO.h"
@@ -8,45 +10,66 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <vector>
-#include <cmath>
 
 #define W_WIDTH 1920
 #define W_HEIGHT 1080
 
-Vertex vertices[] =
-{
-    Vertex{{-1.0f, 0.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-    Vertex{{-1.0f, 0.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
-    Vertex{{ 1.0f, 0.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
-    Vertex{{ 1.0f, 0.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}}
-};
+// Vertex vertices[] =
+// {
+//     Vertex{{-1.0f, 0.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+//     Vertex{{-1.0f, 0.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
+//     Vertex{{ 1.0f, 0.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
+//     Vertex{{ 1.0f, 0.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}}
+// };
 
-GLuint indices[] =
-{
-    0, 1, 2,
-    0, 2, 3
-};
+// GLuint indices[] =
+// {
+//     0, 2, 1,
+//     0, 3, 2
+// };
+
 
 Vertex cubeVertices[] =
 {
-    Vertex{{-0.25f, 0.1f,  0.25f}, {0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-    Vertex{{ 0.25f, 0.1f,  0.25f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-    Vertex{{ 0.25f, 0.6f,  0.25f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-    Vertex{{-0.25f, 0.6f,  0.25f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
-    Vertex{{ 0.25f, 0.1f, -0.25f}, {0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
-    Vertex{{-0.25f, 0.1f, -0.25f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},
-    Vertex{{ 0.25f, 0.6f, -0.25f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
-    Vertex{{-0.25f, 0.6f, -0.25f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
+    Vertex{{-0.25f, 0.1f,  0.25f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+    Vertex{{ 0.25f, 0.1f,  0.25f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+    Vertex{{ 0.25f, 0.6f,  0.25f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+    Vertex{{-0.25f, 0.6f,  0.25f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
+
+    Vertex{{ 0.25f, 0.1f, -0.25f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+    Vertex{{-0.25f, 0.1f, -0.25f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+    Vertex{{-0.25f, 0.6f, -0.25f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+    Vertex{{ 0.25f, 0.6f, -0.25f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
+
+    Vertex{{-0.25f, 0.6f,  0.25f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+    Vertex{{ 0.25f, 0.6f,  0.25f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+    Vertex{{ 0.25f, 0.6f, -0.25f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+    Vertex{{-0.25f, 0.6f, -0.25f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
+
+    Vertex{{-0.25f, 0.1f, -0.25f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+    Vertex{{ 0.25f, 0.1f, -0.25f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+    Vertex{{ 0.25f, 0.1f,  0.25f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+    Vertex{{-0.25f, 0.1f,  0.25f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
+
+    Vertex{{ 0.25f, 0.1f,  0.25f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+    Vertex{{ 0.25f, 0.1f, -0.25f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+    Vertex{{ 0.25f, 0.6f, -0.25f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+    Vertex{{ 0.25f, 0.6f,  0.25f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
+
+    Vertex{{-0.25f, 0.1f, -0.25f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+    Vertex{{-0.25f, 0.1f,  0.25f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+    Vertex{{-0.25f, 0.6f,  0.25f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+    Vertex{{-0.25f, 0.6f, -0.25f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}}
 };
 
 GLuint cubeIndices[] =
 {
-    0, 1, 2, 0, 2, 3,
-    1, 4, 6, 1, 6, 2,
-    4, 5, 7, 4, 7, 6,
-    5, 0, 3, 5, 3, 7,
-    3, 2, 6, 3, 6, 7,
-    5, 4, 1, 5, 1, 0
+    0,  1,  2,  0,  2,  3,
+    4,  5,  6,  4,  6,  7,
+    8,  9,  10, 8,  10, 11,
+    12, 13, 14, 12, 14, 15,
+    16, 17, 18, 16, 18, 19,
+    20, 21, 22, 20, 22, 23 
 };
 
 Vertex lightVertices[] =
@@ -91,32 +114,48 @@ int main() {
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glViewport(0, 0, W_WIDTH, W_HEIGHT);
 
-    Texture textures[] =
+    
+    Texture floorTextures[] =
     {
-        Texture("../Resources/Textures/pop_cat.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE),
-        Texture("../Resources/Textures/pop.png", "specular", 1, GL_RGBA, GL_UNSIGNED_BYTE)
+        Texture("../Resources/Textures/pop_cat.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE)
     };
+
+    Texture cubeTextures[] =
+    {
+        Texture("../Resources/Textures/pop.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE)
+    };
+
+    Texture modelTextures[] =
+    {
+        Texture("../Resources/Textures/skull.jpg", "specular", 0, GL_RGBA, GL_UNSIGNED_BYTE)
+    };
+
+    
 
     Shader shaderProgram("../Resources/Shaders/default.vert",
                          "../Resources/Shaders/default.frag");
 
-    std::vector<Vertex> verts(vertices, vertices + sizeof(vertices) / sizeof(Vertex));
-    std::vector<GLuint> ind(indices, indices + sizeof(indices) / sizeof(GLuint));
-    std::vector<Texture> tex(textures, textures + sizeof(textures) / sizeof(Texture));
-    Mesh floor(verts, ind, tex);
+    // std::vector<Vertex> verts(vertices, vertices + sizeof(vertices) / sizeof(Vertex));
+    // std::vector<GLuint> ind(indices, indices + sizeof(indices) / sizeof(GLuint));
+    std::vector<Texture> tex(floorTextures, floorTextures + sizeof(floorTextures) / sizeof(Texture));
+    // Mesh floor(verts, ind, tex);
 
     std::vector<Vertex> cubeVerts(cubeVertices, cubeVertices + sizeof(cubeVertices) / sizeof(Vertex));
     std::vector<GLuint> cubeInd(cubeIndices, cubeIndices + sizeof(cubeIndices) / sizeof(GLuint));
-    Mesh cube(cubeVerts, cubeInd, tex);
+    std::vector<Texture> tex2(cubeTextures, cubeTextures + sizeof(cubeTextures) / sizeof(Texture));
+    Mesh cube(cubeVerts, cubeInd, tex2);
+
+    std::vector<Texture> modelTex(modelTextures, modelTextures + sizeof(modelTextures) / sizeof(Texture));
+    Model model("../Resources/Models/skull.obj", tex);
 
     Shader lightShader("../Resources/Shaders/light.vert",
                        "../Resources/Shaders/light.frag");
     std::vector<Vertex> lightVerts(lightVertices, lightVertices + sizeof(lightVertices) / sizeof(Vertex));
     std::vector<GLuint> lightInd(lightIndices, lightIndices + sizeof(lightIndices) / sizeof(GLuint));
-    Mesh light(lightVerts, lightInd, tex);
+    Mesh light(lightVerts, lightInd, tex2);
 
-    float lightColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-    float lightPos[3] = {0.5f, 0.5f, 0.5f};
+    float lightColor[4] = {1.f, 1.f, 0.5ef, 1.0f};
+    float lightPos[3] = {0.f, 4.f, 0.f};
     matrix4 lightModel = createIdentityMatrix();
     lightModel = createTranslationMatrix(lightPos[0], lightPos[1], lightPos[2]);
 
@@ -136,6 +175,22 @@ int main() {
 
     float pos[3] = {0.f, 0.f, 2.f};
     Camera camera(W_WIDTH, W_HEIGHT, pos);
+    
+//     while (!glfwWindowShouldClose(window)) {
+//         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+//         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+//         camera.Inputs(window);
+//         camera.updateMatrix(45.f, 0.1f, 100.f);
+
+//         floor.Draw(shaderProgram, camera);
+//         cube.Draw(shaderProgram, camera);
+// //        model.Draw(shaderProgram, camera);
+//         light.Draw(lightShader, camera);
+
+//         glfwSwapBuffers(window);
+//         glfwPollEvents();
+//     }
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
@@ -144,8 +199,27 @@ int main() {
         camera.Inputs(window);
         camera.updateMatrix(45.f, 0.1f, 100.f);
 
-        floor.Draw(shaderProgram, camera);
+        // matrix4 floorModel = createIdentityMatrix();
+        // shaderProgram.Activate();
+        // glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, floorModel.data());
+        // floor.Draw(shaderProgram, camera);
+
+        matrix4 cubeModel = createIdentityMatrix();
+        cubeModel = multiplyMatrices(cubeModel, createTranslationMatrix(1.f, 0.f, 0.f));
+        float time = glfwGetTime();
+        cubeModel = multiplyMatrices(cubeModel, createRotationMatrixY(time));
+        shaderProgram.Activate();
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, cubeModel.data());
         cube.Draw(shaderProgram, camera);
+
+        matrix4 skullModel = createIdentityMatrix();
+        skullModel = multiplyMatrices(createRotationMatrixX(glm::radians(90.f)), createScaleMatrix(0.05f, 0.05f, 0.05f));
+        shaderProgram.Activate();
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, skullModel.data());
+        model.Draw(shaderProgram, camera);
+
+        lightShader.Activate();
+        glUniformMatrix4fv(glGetUniformLocation(lightShader.ID, "model"), 1, GL_FALSE, lightModel.data());
         light.Draw(lightShader, camera);
 
         glfwSwapBuffers(window);
