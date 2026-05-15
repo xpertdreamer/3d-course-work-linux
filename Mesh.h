@@ -30,8 +30,7 @@ public:
     void Draw
     (
         Shader& shader,
-        Camera& camera,
-        matrix4& model
+        Camera& camera
     );
 };
 

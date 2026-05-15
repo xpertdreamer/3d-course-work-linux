@@ -1,6 +1,5 @@
 #include "Mesh.h"
 #include "EBO.h"
-#include "Matrix.hpp"
 #include "Texture.h"
 #include "shaderClass.h"
 #include <string>
@@ -37,24 +36,33 @@ Mesh::Mesh
 void Mesh::Draw
 (
     Shader& shader,
-    Camera& camera,
-    matrix4& model
+    Camera& camera
 )
 {
     shader.Activate();
     vao.Bind();
 
-    int modelLoc = glGetUniformLocation(shader.ID, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.data());
+    unsigned int numDiffuse = 0;
+    unsigned int numSpecular = 0;
 
     for (unsigned int i = 0; i < textures.size(); i++)
     {
-        std::string uniformName = "tex" + std::to_string(i);
-        textures[i].texUnit(shader, uniformName.c_str(), i);
-        textures[i].Bind();
+        std::string num;
+		std::string type = textures[i].type;
+		if (type == "diffuse")
+		{
+			num = std::to_string(numDiffuse++);
+		}
+		else if (type == "specular")
+		{
+			num = std::to_string(numSpecular++);
+		}
+		textures[i].texUnit(shader, (type + num).c_str(), i);
+		textures[i].Bind();
     }
 
-    camera.Matrix(shader, "camMatrix");
+    glUniform3f(glGetUniformLocation(shader.ID, "camPos"), camera.Position[0], camera.Position[1], camera.Position[2]);
+	camera.Matrix(shader, "camMatrix");
 
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 }
