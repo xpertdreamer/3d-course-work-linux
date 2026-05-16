@@ -1,3 +1,5 @@
+#include "Util.h"
+
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_opengl3.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -15,13 +17,9 @@
 #include <iostream>
 #include <vector>
 
-#define W_WIDTH 1920
-#define W_HEIGHT 1080
-
 bool skullSelected = false;
 bool cubeSelected = false;
 bool rightPressed = false;
-bool wireframe = false;
 
 float skullCenter[3] = {0.f, 0.f, 0.f};
 float cubeCenter[3] = {5.f, 0.f, 0.f};
@@ -278,8 +276,8 @@ int main() {
         glStencilMask(cubeSelected ? 0xFF : 0x00);
         matrix4 cubeModel = createIdentityMatrix();
         cubeModel = multiplyMatrices(cubeModel, createTranslationMatrix(5.f, 0.f, 0.f));
-        float time = glfwGetTime();
-        cubeModel = multiplyMatrices(cubeModel, createRotationMatrixY(time));
+        float timeRot = glfwGetTime();
+        cubeModel = multiplyMatrices(cubeModel, createRotationMatrixY(timeRot));
         shaderProgram.Activate();
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, cubeModel.data());
         cube.Draw(shaderProgram, camera);
@@ -326,6 +324,18 @@ int main() {
         if (skullSelected) ImGui::Text("Selected: Skull");
         else if (cubeSelected) ImGui::Text("Selected: Cube");
         else ImGui::Text("Selected: None");
+
+        ImGui::Separator();
+        static char lastScreen[64] = "";
+        if (ImGui::Button("Save Screenshot"))
+        {
+            time_t timeNow = time(nullptr);
+            strftime(lastScreen, sizeof(lastScreen),
+                     "screenshot_%Y%m%d_%H%M%S.png", localtime(&timeNow));
+            saveScreenshot();
+        }
+        if (lastScreen[0]) ImGui::Text("Saved: %s", lastScreen);
+        
         ImGui::End();
 
         ImGui::Render();
