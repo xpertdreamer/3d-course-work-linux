@@ -100,6 +100,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_STENCIL_BITS, 8);
 
     GLFWwindow *window = glfwCreateWindow(W_WIDTH, W_HEIGHT, "3d-course-work", NULL, NULL);
     if (window == NULL) {
@@ -208,9 +209,7 @@ int main() {
         // glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, floorModel.data());
         // floor.Draw(shaderProgram, camera);
 
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glStencilMask(0xFF);
-
+        glStencilMask(0x00);
         matrix4 cubeModel = createIdentityMatrix();
         cubeModel = multiplyMatrices(cubeModel, createTranslationMatrix(1.f, 0.f, 0.f));
         float time = glfwGetTime();
@@ -219,12 +218,15 @@ int main() {
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, cubeModel.data());
         cube.Draw(shaderProgram, camera);
 
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
         matrix4 skullModel = createIdentityMatrix();
         skullModel = multiplyMatrices(createRotationMatrixX(glm::radians(90.f)), createScaleMatrix(0.05f, 0.05f, 0.05f));
         shaderProgram.Activate();
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, skullModel.data());
         model.Draw(shaderProgram, camera);
 
+        glStencilMask(0x00);
         lightShader.Activate();
         glUniformMatrix4fv(glGetUniformLocation(lightShader.ID, "model"), 1, GL_FALSE, lightModel.data());
         light.Draw(lightShader, camera);
@@ -234,6 +236,7 @@ int main() {
         glDisable(GL_DEPTH_TEST);
         outliningProgram.Activate();
         glUniform1f(glGetUniformLocation(outliningProgram.ID, "outlining"), 0.08f);
+        glUniformMatrix4fv(glGetUniformLocation(outliningProgram.ID, "model"), 1, GL_FALSE, skullModel.data());
         model.Draw(outliningProgram, camera);
 
         glStencilMask(0xFF);
