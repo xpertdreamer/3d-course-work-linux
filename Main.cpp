@@ -1,3 +1,6 @@
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_opengl3.h"
+#include "imgui/imgui_impl_glfw.h"
 #include <glm/glm.hpp>
 #include "Mesh.h"
 #include "Camera.hpp"
@@ -185,6 +188,10 @@ int main() {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_STENCIL_TEST);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    glFrontFace(GL_CW);
 
     float pos[3] = {0.f, 0.f, 2.f};
     Camera camera(W_WIDTH, W_HEIGHT, pos);
@@ -205,12 +212,28 @@ int main() {
 //         glfwPollEvents();
 //     }
 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+    
+    
     while (!glfwWindowShouldClose(window))
     {
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        camera.Inputs(window);
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        if (!io.WantCaptureMouse)
+        {
+            camera.Inputs(window);            
+        }
+
         camera.updateMatrix(45.f, 0.1f, 100.f);
 
         // matrix4 floorModel = createIdentityMatrix();
@@ -218,34 +241,37 @@ int main() {
         // glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, floorModel.data());
         // floor.Draw(shaderProgram, camera);
 
-        bool rightNow = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
-        if (rightNow && !rightPressed)
+        if (!io.WantCaptureMouse)
         {
-            double mX, mY;
-            glfwGetCursorPos(window, &mX, &mY);
+              bool rightNow = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+              if (rightNow && !rightPressed)
+              {
+                  double mX, mY;
+                  glfwGetCursorPos(window, &mX, &mY);
 
-            Ray ray = screenToRay(mX, mY, W_WIDTH, W_HEIGHT, camera.cameraMatrix, camera.Position);
+                  Ray ray = screenToRay(mX, mY, W_WIDTH, W_HEIGHT, camera.cameraMatrix, camera.Position);
 
-            bool hitSkull = rayIntersectsSphere(ray, skullCenter, 0.04f);
-            bool hitCube  = rayIntersectsSphere(ray, cubeCenter,  0.04f);
+                  bool hitSkull = rayIntersectsSphere(ray, skullCenter, 0.04f);
+                  bool hitCube  = rayIntersectsSphere(ray, cubeCenter,  0.04f);
 
-            if (hitSkull)
-            {
-                skullSelected = !skullSelected;
-                cubeSelected = false;
-            }
-            else if (hitCube)
-            {
-                cubeSelected = !cubeSelected;
-                skullSelected = false;
-            }
-            else
-            {
-                cubeSelected = false;
-                skullSelected = false;
-            }
+                  if (hitSkull)
+                  {
+                      skullSelected = !skullSelected;
+                      cubeSelected = false;
+                  }
+                  else if (hitCube)
+                  {
+                      cubeSelected = !cubeSelected;
+                      skullSelected = false;
+                  }
+                  else
+                  {
+                      cubeSelected = false;
+                      skullSelected = false;
+                  }
+              }
+              rightPressed = rightNow;
         }
-        rightPressed = rightNow;
 
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
         glStencilMask(cubeSelected ? 0xFF : 0x00);
@@ -290,9 +316,20 @@ int main() {
         glStencilFunc(GL_ALWAYS, 0, 0xFF);
         glEnable(GL_DEPTH_TEST);
 
+        ImGui::Begin("Test window");
+        ImGui::Text("Test test test");
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     shaderProgram.Delete();
     lightShader.Delete();
