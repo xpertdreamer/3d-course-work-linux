@@ -134,7 +134,9 @@ int main() {
 
     Shader shaderProgram("../Resources/Shaders/default.vert",
                          "../Resources/Shaders/default.frag");
-
+    Shader outliningProgram("../Resources/Shaders/outlining.vert",
+                            "../Resources/Shaders/outlining.frag");
+    
     // std::vector<Vertex> verts(vertices, vertices + sizeof(vertices) / sizeof(Vertex));
     // std::vector<GLuint> ind(indices, indices + sizeof(indices) / sizeof(GLuint));
     std::vector<Texture> tex(floorTextures, floorTextures + sizeof(floorTextures) / sizeof(Texture));
@@ -154,7 +156,7 @@ int main() {
     std::vector<GLuint> lightInd(lightIndices, lightIndices + sizeof(lightIndices) / sizeof(GLuint));
     Mesh light(lightVerts, lightInd, tex2);
 
-    float lightColor[4] = {1.f, 1.f, 0.5ef, 1.0f};
+    float lightColor[4] = {1.f, 1.f, 0.5f, 1.0f};
     float lightPos[3] = {0.f, 4.f, 0.f};
     matrix4 lightModel = createIdentityMatrix();
     lightModel = createTranslationMatrix(lightPos[0], lightPos[1], lightPos[2]);
@@ -172,6 +174,8 @@ int main() {
     glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos[0], lightPos[1], lightPos[2]);
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_STENCIL_TEST);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
     float pos[3] = {0.f, 0.f, 2.f};
     Camera camera(W_WIDTH, W_HEIGHT, pos);
@@ -194,7 +198,7 @@ int main() {
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         camera.Inputs(window);
         camera.updateMatrix(45.f, 0.1f, 100.f);
@@ -203,6 +207,9 @@ int main() {
         // shaderProgram.Activate();
         // glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, floorModel.data());
         // floor.Draw(shaderProgram, camera);
+
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
 
         matrix4 cubeModel = createIdentityMatrix();
         cubeModel = multiplyMatrices(cubeModel, createTranslationMatrix(1.f, 0.f, 0.f));
@@ -221,6 +228,17 @@ int main() {
         lightShader.Activate();
         glUniformMatrix4fv(glGetUniformLocation(lightShader.ID, "model"), 1, GL_FALSE, lightModel.data());
         light.Draw(lightShader, camera);
+
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+        glDisable(GL_DEPTH_TEST);
+        outliningProgram.Activate();
+        glUniform1f(glGetUniformLocation(outliningProgram.ID, "outlining"), 0.08f);
+        model.Draw(outliningProgram, camera);
+
+        glStencilMask(0xFF);
+        glStencilFunc(GL_ALWAYS, 0, 0xFF);
+        glEnable(GL_DEPTH_TEST);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
