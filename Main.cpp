@@ -3,6 +3,7 @@
 #include "Camera.hpp"
 #include "Matrix.hpp"
 #include "Model.h"
+#include "Raycast.h"
 #include "Texture.h"
 #include "shaderClass.h"
 #include "VBO.h"
@@ -13,6 +14,13 @@
 
 #define W_WIDTH 1920
 #define W_HEIGHT 1080
+
+bool skullSelected = false;
+bool cubeSelected = false;
+bool rightPressed = false;
+
+float skullCenter[3] = {0.f, 0.f, 0.f};
+float cubeCenter[3] = {5.f, 0.f, 0.f};
 
 // Vertex vertices[] =
 // {
@@ -197,7 +205,8 @@ int main() {
 //         glfwPollEvents();
 //     }
 
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window))
+    {
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -209,9 +218,39 @@ int main() {
         // glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, floorModel.data());
         // floor.Draw(shaderProgram, camera);
 
-        glStencilMask(0x00);
+        bool rightNow = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+        if (rightNow && !rightPressed)
+        {
+            double mX, mY;
+            glfwGetCursorPos(window, &mX, &mY);
+
+            Ray ray = screenToRay(mX, mY, W_WIDTH, W_HEIGHT, camera.cameraMatrix, camera.Position);
+
+            bool hitSkull = rayIntersectsSphere(ray, skullCenter, 0.04f);
+            bool hitCube  = rayIntersectsSphere(ray, cubeCenter,  0.04f);
+
+            if (hitSkull)
+            {
+                skullSelected = !skullSelected;
+                cubeSelected = false;
+            }
+            else if (hitCube)
+            {
+                cubeSelected = !cubeSelected;
+                skullSelected = false;
+            }
+            else
+            {
+                cubeSelected = false;
+                skullSelected = false;
+            }
+        }
+        rightPressed = rightNow;
+
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(cubeSelected ? 0xFF : 0x00);
         matrix4 cubeModel = createIdentityMatrix();
-        cubeModel = multiplyMatrices(cubeModel, createTranslationMatrix(1.f, 0.f, 0.f));
+        cubeModel = multiplyMatrices(cubeModel, createTranslationMatrix(5.f, 0.f, 0.f));
         float time = glfwGetTime();
         cubeModel = multiplyMatrices(cubeModel, createRotationMatrixY(time));
         shaderProgram.Activate();
@@ -219,7 +258,7 @@ int main() {
         cube.Draw(shaderProgram, camera);
 
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glStencilMask(0xFF);
+        glStencilMask(skullSelected ? 0xFF : 0x00);
         matrix4 skullModel = createIdentityMatrix();
         skullModel = multiplyMatrices(createRotationMatrixX(glm::radians(90.f)), createScaleMatrix(0.05f, 0.05f, 0.05f));
         shaderProgram.Activate();
@@ -236,8 +275,16 @@ int main() {
         glDisable(GL_DEPTH_TEST);
         outliningProgram.Activate();
         glUniform1f(glGetUniformLocation(outliningProgram.ID, "outlining"), 0.08f);
-        glUniformMatrix4fv(glGetUniformLocation(outliningProgram.ID, "model"), 1, GL_FALSE, skullModel.data());
-        model.Draw(outliningProgram, camera);
+        if (skullSelected) {
+            glUniformMatrix4fv(glGetUniformLocation(outliningProgram.ID, "model"),
+                               1, GL_FALSE, skullModel.data());
+            model.Draw(outliningProgram, camera);
+        }
+        if (cubeSelected) {
+            glUniformMatrix4fv(glGetUniformLocation(outliningProgram.ID, "model"),
+                               1, GL_FALSE, cubeModel.data());
+            cube.Draw(outliningProgram, camera);
+        }
 
         glStencilMask(0xFF);
         glStencilFunc(GL_ALWAYS, 0, 0xFF);
