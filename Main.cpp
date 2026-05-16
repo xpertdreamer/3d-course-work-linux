@@ -1,5 +1,5 @@
 #include "Util.h"
-
+#include "Axis.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_opengl3.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -18,25 +18,10 @@
 #include <vector>
 
 bool skullSelected = false;
-bool cubeSelected = false;
 bool rightPressed = false;
+bool showAxis = true;
 
 float skullCenter[3] = {0.f, 0.f, 0.f};
-float cubeCenter[3] = {5.f, 0.f, 0.f};
-
-// Vertex vertices[] =
-// {
-//     Vertex{{-1.0f, 0.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-//     Vertex{{-1.0f, 0.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
-//     Vertex{{ 1.0f, 0.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
-//     Vertex{{ 1.0f, 0.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}}
-// };
-
-// GLuint indices[] =
-// {
-//     0, 2, 1,
-//     0, 3, 2
-// };
 
 
 Vertex cubeVertices[] =
@@ -104,7 +89,8 @@ GLuint lightIndices[] =
     4, 5, 6, 4, 6, 7
 };
 
-int main() {
+int main()
+{
     glfwInit();
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -125,28 +111,31 @@ int main() {
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glViewport(0, 0, W_WIDTH, W_HEIGHT);
 
-    
     Texture floorTextures[] =
-    {
+        {
         Texture("../Resources/Textures/pop_cat.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE)
     };
 
     Texture cubeTextures[] =
-    {
+        {
         Texture("../Resources/Textures/pop.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE)
     };
 
     Texture modelTextures[] =
-    {
+        {
         Texture("../Resources/Textures/skull.jpg", "specular", 0, GL_RGBA, GL_UNSIGNED_BYTE)
     };
-
-    
 
     Shader shaderProgram("../Resources/Shaders/default.vert",
                          "../Resources/Shaders/default.frag");
     Shader outliningProgram("../Resources/Shaders/outlining.vert",
                             "../Resources/Shaders/outlining.frag");
+    Shader lightShader("../Resources/Shaders/light.vert",
+                       "../Resources/Shaders/light.frag");
+    Shader axisShader("../Resources/Shaders/axis.vert",
+                      "../Resources/Shaders/axis.frag");
+    
+    Axis axis;
     
     // std::vector<Vertex> verts(vertices, vertices + sizeof(vertices) / sizeof(Vertex));
     // std::vector<GLuint> ind(indices, indices + sizeof(indices) / sizeof(GLuint));
@@ -161,8 +150,6 @@ int main() {
     std::vector<Texture> modelTex(modelTextures, modelTextures + sizeof(modelTextures) / sizeof(Texture));
     Model model("../Resources/Models/skull.obj", tex);
 
-    Shader lightShader("../Resources/Shaders/light.vert",
-                       "../Resources/Shaders/light.frag");
     std::vector<Vertex> lightVerts(lightVertices, lightVertices + sizeof(lightVertices) / sizeof(Vertex));
     std::vector<GLuint> lightInd(lightIndices, lightIndices + sizeof(lightIndices) / sizeof(GLuint));
     Mesh light(lightVerts, lightInd, tex2);
@@ -194,22 +181,6 @@ int main() {
 
     float pos[3] = {0.f, 0.f, 2.f};
     Camera camera(W_WIDTH, W_HEIGHT, pos);
-    
-//     while (!glfwWindowShouldClose(window)) {
-//         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-//         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-//         camera.Inputs(window);
-//         camera.updateMatrix(45.f, 0.1f, 100.f);
-
-//         floor.Draw(shaderProgram, camera);
-//         cube.Draw(shaderProgram, camera);
-// //        model.Draw(shaderProgram, camera);
-//         light.Draw(lightShader, camera);
-
-//         glfwSwapBuffers(window);
-//         glfwPollEvents();
-//     }
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -217,7 +188,6 @@ int main() {
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
-    
     
     while (!glfwWindowShouldClose(window))
     {
@@ -235,6 +205,14 @@ int main() {
 
         camera.updateMatrix(45.f, 0.1f, 100.f);
 
+        if (showAxis)
+        {
+            glStencilMask(0x00);
+            glDisable(GL_DEPTH_TEST);
+            axis.Draw(axisShader, camera);
+            glEnable(GL_DEPTH_TEST);
+        }
+
         // matrix4 floorModel = createIdentityMatrix();
         // shaderProgram.Activate();
         // glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, floorModel.data());
@@ -250,30 +228,21 @@ int main() {
 
                   Ray ray = screenToRay(mX, mY, W_WIDTH, W_HEIGHT, camera.cameraMatrix, camera.Position);
 
-                  bool hitSkull = rayIntersectsSphere(ray, skullCenter, 0.04f);
-                  bool hitCube  = rayIntersectsSphere(ray, cubeCenter,  0.04f);
+                  bool hitSkull = rayIntersectsSphere(ray, skullCenter, 0.05f);
 
                   if (hitSkull)
                   {
                       skullSelected = !skullSelected;
-                      cubeSelected = false;
-                  }
-                  else if (hitCube)
-                  {
-                      cubeSelected = !cubeSelected;
-                      skullSelected = false;
                   }
                   else
                   {
-                      cubeSelected = false;
                       skullSelected = false;
                   }
               }
               rightPressed = rightNow;
         }
 
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glStencilMask(cubeSelected ? 0xFF : 0x00);
+        glStencilMask(0x00);
         matrix4 cubeModel = createIdentityMatrix();
         cubeModel = multiplyMatrices(cubeModel, createTranslationMatrix(5.f, 0.f, 0.f));
         float timeRot = glfwGetTime();
@@ -305,11 +274,6 @@ int main() {
                                1, GL_FALSE, skullModel.data());
             model.Draw(outliningProgram, camera);
         }
-        if (cubeSelected) {
-            glUniformMatrix4fv(glGetUniformLocation(outliningProgram.ID, "model"),
-                               1, GL_FALSE, cubeModel.data());
-            cube.Draw(outliningProgram, camera);
-        }
 
         glStencilMask(0xFF);
         glStencilFunc(GL_ALWAYS, 0, 0xFF);
@@ -322,7 +286,6 @@ int main() {
             else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
         if (skullSelected) ImGui::Text("Selected: Skull");
-        else if (cubeSelected) ImGui::Text("Selected: Cube");
         else ImGui::Text("Selected: None");
 
         ImGui::Separator();
@@ -335,6 +298,9 @@ int main() {
             saveScreenshot();
         }
         if (lastScreen[0]) ImGui::Text("Saved: %s", lastScreen);
+
+        ImGui::Separator();
+        ImGui::Checkbox("Show Axes", &showAxis);
         
         ImGui::End();
 

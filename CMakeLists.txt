@@ -24,6 +24,6 @@ set(IMGUI_SOURCES
 # glm
 find_path(GLM_INCLUDE_DIR glm/glm.hpp)
 
-add_executable(${PROJECT_NAME} stb.cpp Main.cpp EBO.cpp shaderClass.cpp VAO.cpp VBO.cpp Texture.cpp Camera.cpp Mesh.cpp ${IMGUI_SOURCES})
+add_executable(${PROJECT_NAME} stb.cpp Main.cpp EBO.cpp shaderClass.cpp VAO.cpp VBO.cpp Texture.cpp Camera.cpp Mesh.cpp ${IMGUI_SOURCES} Axis.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE include ${GLM_INCLUDE_DIR} ${IMGUI_DIR})
 target_link_libraries(${PROJECT_NAME} glad OpenGL::GL ${GLFW_LIBRARIES})
