@@ -21,6 +21,7 @@
 bool skullSelected = false;
 bool cubeSelected = false;
 bool rightPressed = false;
+bool wireframe = false;
 
 float skullCenter[3] = {0.f, 0.f, 0.f};
 float cubeCenter[3] = {5.f, 0.f, 0.f};
@@ -316,8 +317,15 @@ int main() {
         glStencilFunc(GL_ALWAYS, 0, 0xFF);
         glEnable(GL_DEPTH_TEST);
 
-        ImGui::Begin("Test window");
-        ImGui::Text("Test test test");
+        ImGui::Begin("GUI");
+        if (ImGui::Checkbox("Wireframe", &wireframe))
+        {
+            if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+        if (skullSelected) ImGui::Text("Selected: Skull");
+        else if (cubeSelected) ImGui::Text("Selected: Cube");
+        else ImGui::Text("Selected: None");
         ImGui::End();
 
         ImGui::Render();
