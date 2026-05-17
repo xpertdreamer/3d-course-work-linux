@@ -112,19 +112,21 @@ int main()
     glViewport(0, 0, W_WIDTH, W_HEIGHT);
 
     Texture floorTextures[] =
-        {
+    {
         Texture("../Resources/Textures/pop_cat.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE)
     };
 
     Texture cubeTextures[] =
-        {
+    {
         Texture("../Resources/Textures/pop.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE)
     };
 
     Texture modelTextures[] =
-        {
+    {
         Texture("../Resources/Textures/skull.jpg", "specular", 0, GL_RGBA, GL_UNSIGNED_BYTE)
-    };
+};
+
+    Texture jetTextures[] = { Texture("../Resources/Textures/jet.jpg", "specular", 0, GL_RGB, GL_UNSIGNED_BYTE) };
 
     Shader shaderProgram("../Resources/Shaders/default.vert",
                          "../Resources/Shaders/default.frag");
@@ -136,11 +138,6 @@ int main()
                       "../Resources/Shaders/axis.frag");
     
     Axis axis;
-    
-    // std::vector<Vertex> verts(vertices, vertices + sizeof(vertices) / sizeof(Vertex));
-    // std::vector<GLuint> ind(indices, indices + sizeof(indices) / sizeof(GLuint));
-    std::vector<Texture> tex(floorTextures, floorTextures + sizeof(floorTextures) / sizeof(Texture));
-    // Mesh floor(verts, ind, tex);
 
     std::vector<Vertex> cubeVerts(cubeVertices, cubeVertices + sizeof(cubeVertices) / sizeof(Vertex));
     std::vector<GLuint> cubeInd(cubeIndices, cubeIndices + sizeof(cubeIndices) / sizeof(GLuint));
@@ -148,17 +145,24 @@ int main()
     Mesh cube(cubeVerts, cubeInd, tex2);
 
     std::vector<Texture> modelTex(modelTextures, modelTextures + sizeof(modelTextures) / sizeof(Texture));
-    Model model("../Resources/Models/skull.obj", tex);
+    Model model("../Resources/Models/skull.obj", modelTex);
+
+    std::vector<Texture> jetTex(jetTextures, jetTextures + sizeof(jetTextures) / sizeof(Texture));
+    Model jet("../Resources/Models/jet.obj", jetTex);
+    if (jet.meshes.empty()) {
+    std::cout << "ERROR: Failed to load jet.obj" << std::endl;
+    return -1;
+}
 
     std::vector<Vertex> lightVerts(lightVertices, lightVertices + sizeof(lightVertices) / sizeof(Vertex));
     std::vector<GLuint> lightInd(lightIndices, lightIndices + sizeof(lightIndices) / sizeof(GLuint));
     Mesh light(lightVerts, lightInd, tex2);
-
     float lightColor[4] = {1.f, 1.f, 0.5f, 1.0f};
     float lightPos[3] = {0.f, 4.f, 0.f};
+    
     matrix4 lightModel = createIdentityMatrix();
     lightModel = createTranslationMatrix(lightPos[0], lightPos[1], lightPos[2]);
-
+    
     matrix4 objectModel = createIdentityMatrix();
     objectModel = createTranslationMatrix(0.0f, 0.0f, 0.0f);
 
@@ -213,11 +217,6 @@ int main()
             glEnable(GL_DEPTH_TEST);
         }
 
-        // matrix4 floorModel = createIdentityMatrix();
-        // shaderProgram.Activate();
-        // glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, floorModel.data());
-        // floor.Draw(shaderProgram, camera);
-
         if (!io.WantCaptureMouse)
         {
               bool rightNow = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
@@ -251,6 +250,12 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, cubeModel.data());
         cube.Draw(shaderProgram, camera);
 
+        matrix4 jetModel = createIdentityMatrix();
+        jetModel = multiplyMatrices(jetModel, createTranslationMatrix(0.f, 0.f, 5.f));
+        shaderProgram.Activate();
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, jetModel.data());
+        jet.Draw(shaderProgram, camera);
+
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
         glStencilMask(skullSelected ? 0xFF : 0x00);
         matrix4 skullModel = createIdentityMatrix();
@@ -258,11 +263,11 @@ int main()
         shaderProgram.Activate();
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, skullModel.data());
         model.Draw(shaderProgram, camera);
-
+        
         glStencilMask(0x00);
         lightShader.Activate();
         glUniformMatrix4fv(glGetUniformLocation(lightShader.ID, "model"), 1, GL_FALSE, lightModel.data());
-        light.Draw(lightShader, camera);
+        // light.Draw(lightShader, camera);
 
         glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
         glStencilMask(0x00);
@@ -315,6 +320,7 @@ int main()
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
+    axis.Delete();
     shaderProgram.Delete();
     lightShader.Delete();
     glfwDestroyWindow(window);

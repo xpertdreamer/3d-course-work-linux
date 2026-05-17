@@ -3,12 +3,14 @@
 
 #include "shaderClass.h"
 #include "Camera.hpp"
+#include "VAO.h"
 
 class Axis
 {
 public:
-    GLuint VAO;
-    GLuint VBO;
+    VAO vao;
+    std::vector<Vertex>  vertices;
+    std::vector<GLuint>  indices;
 
     Axis();
     void Draw(Shader& shader, Camera& camera);
