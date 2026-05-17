@@ -17,12 +17,11 @@
 #include <iostream>
 #include <vector>
 
-bool skullSelected = false;
+SceneState scene;
+
 bool rightPressed = false;
-bool showAxis = true;
 
 float skullCenter[3] = {0.f, 0.f, 0.f};
-
 
 Vertex cubeVertices[] =
 {
@@ -111,6 +110,8 @@ int main()
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glViewport(0, 0, W_WIDTH, W_HEIGHT);
 
+    if (!loadScene(scene)) return -1;
+
     Texture floorTextures[] =
     {
         Texture("../Resources/Textures/pop_cat.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE)
@@ -149,31 +150,28 @@ int main()
 
     std::vector<Texture> jetTex(jetTextures, jetTextures + sizeof(jetTextures) / sizeof(Texture));
     Model jet("../Resources/Models/jet.obj", jetTex);
-    if (jet.meshes.empty()) {
-    std::cout << "ERROR: Failed to load jet.obj" << std::endl;
-    return -1;
-}
 
     std::vector<Vertex> lightVerts(lightVertices, lightVertices + sizeof(lightVertices) / sizeof(Vertex));
     std::vector<GLuint> lightInd(lightIndices, lightIndices + sizeof(lightIndices) / sizeof(GLuint));
     Mesh light(lightVerts, lightInd, tex2);
-    float lightColor[4] = {1.f, 1.f, 0.5f, 1.0f};
-    float lightPos[3] = {0.f, 4.f, 0.f};
     
     matrix4 lightModel = createIdentityMatrix();
-    lightModel = createTranslationMatrix(lightPos[0], lightPos[1], lightPos[2]);
+    lightModel = createTranslationMatrix(scene.lightPos[0], scene.lightPos[1], scene.lightPos[2]);
     
     matrix4 objectModel = createIdentityMatrix();
     objectModel = createTranslationMatrix(0.0f, 0.0f, 0.0f);
 
     lightShader.Activate();
     glUniformMatrix4fv(glGetUniformLocation(lightShader.ID, "model"), 1, GL_FALSE, lightModel.data());
-    glUniform4f(glGetUniformLocation(lightShader.ID, "lightColor"), lightColor[0], lightColor[1], lightColor[2], lightColor[3]);
+    glUniform4f(glGetUniformLocation(lightShader.ID, "lightColor"),
+                scene.lightColor[0], scene.lightColor[1], scene.lightColor[2], scene.lightColor[3]);
 
     shaderProgram.Activate();
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, objectModel.data());
-    glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor[0], lightColor[1], lightColor[2], lightColor[3]);
-    glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos[0], lightPos[1], lightPos[2]);
+    glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"),
+                scene.lightColor[0], scene.lightColor[1], scene.lightColor[2], scene.lightColor[3]);
+    glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"),
+                scene.lightPos[0], scene.lightPos[1], scene.lightPos[2]);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_STENCIL_TEST);
@@ -183,8 +181,7 @@ int main()
     glCullFace(GL_FRONT);
     glFrontFace(GL_CW);
 
-    float pos[3] = {0.f, 0.f, 2.f};
-    Camera camera(W_WIDTH, W_HEIGHT, pos);
+    Camera camera(W_WIDTH, W_HEIGHT, scene.camPos);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -209,7 +206,7 @@ int main()
 
         camera.updateMatrix(45.f, 0.1f, 100.f);
 
-        if (showAxis)
+        if (scene.showAxes)
         {
             glStencilMask(0x00);
             glDisable(GL_DEPTH_TEST);
@@ -231,11 +228,11 @@ int main()
 
                   if (hitSkull)
                   {
-                      skullSelected = !skullSelected;
+                      scene.skullSelected = !scene.skullSelected;
                   }
                   else
                   {
-                      skullSelected = false;
+                      scene.skullSelected = false;
                   }
               }
               rightPressed = rightNow;
@@ -243,7 +240,7 @@ int main()
 
         glStencilMask(0x00);
         matrix4 cubeModel = createIdentityMatrix();
-        cubeModel = multiplyMatrices(cubeModel, createTranslationMatrix(5.f, 0.f, 0.f));
+        cubeModel = multiplyMatrices(cubeModel, createTranslationMatrix(scene.cubePos[0], scene.cubePos[1], scene.cubePos[2]));
         float timeRot = glfwGetTime();
         cubeModel = multiplyMatrices(cubeModel, createRotationMatrixY(timeRot));
         shaderProgram.Activate();
@@ -257,9 +254,11 @@ int main()
         jet.Draw(shaderProgram, camera);
 
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glStencilMask(skullSelected ? 0xFF : 0x00);
+        glStencilMask(scene.skullSelected ? 0xFF : 0x00);
         matrix4 skullModel = createIdentityMatrix();
-        skullModel = multiplyMatrices(createRotationMatrixX(glm::radians(90.f)), createScaleMatrix(0.05f, 0.05f, 0.05f));
+        skullModel = multiplyMatrices(createRotationMatrixX(
+                                          glm::radians(scene.skullRotX)),
+                                      createScaleMatrix(scene.skullScale, scene.skullScale, scene.skullScale));
         shaderProgram.Activate();
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, skullModel.data());
         model.Draw(shaderProgram, camera);
@@ -274,7 +273,7 @@ int main()
         glDisable(GL_DEPTH_TEST);
         outliningProgram.Activate();
         glUniform1f(glGetUniformLocation(outliningProgram.ID, "outlining"), 0.08f);
-        if (skullSelected) {
+        if (scene.skullSelected) {
             glUniformMatrix4fv(glGetUniformLocation(outliningProgram.ID, "model"),
                                1, GL_FALSE, skullModel.data());
             model.Draw(outliningProgram, camera);
@@ -285,12 +284,12 @@ int main()
         glEnable(GL_DEPTH_TEST);
 
         ImGui::Begin("GUI");
-        if (ImGui::Checkbox("Wireframe", &wireframe))
+        if (ImGui::Checkbox("Wireframe", &scene.wireframe))
         {
-            if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            if (scene.wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
-        if (skullSelected) ImGui::Text("Selected: Skull");
+        if (scene.skullSelected) ImGui::Text("Selected: Skull");
         else ImGui::Text("Selected: None");
 
         ImGui::Separator();
@@ -305,13 +304,48 @@ int main()
         if (lastScreen[0]) ImGui::Text("Saved: %s", lastScreen);
 
         ImGui::Separator();
-        ImGui::Checkbox("Show Axes", &showAxis);
+        ImGui::Checkbox("Show Axes", &scene.showAxes);
+
+        ImGui::Separator();
+        ImGui::Text("Scene");
+        if (ImGui::Button("Save Scene"))
+        {
+            scene.camPos[0] = camera.Position[0];
+            scene.camPos[1] = camera.Position[1];
+            scene.camPos[2] = camera.Position[2];
+            if (!saveScene(scene)) return -1;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Load Scene"))
+        {
+            if (loadScene(scene))
+            {
+                  camera.Position[0] = scene.camPos[0];
+                  camera.Position[1] = scene.camPos[1];
+                  camera.Position[2] = scene.camPos[2];
+                  glPolygonMode(GL_FRONT_AND_BACK, scene.wireframe ? GL_LINE : GL_FILL);
+                  shaderProgram.Activate();
+                  glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"),
+                              scene.lightColor[0],
+                              scene.lightColor[1],
+                              scene.lightColor[2],
+                              scene.lightColor[3]);
+                  glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"),
+                              scene.lightPos[0],
+                              scene.lightPos[1],
+                              scene.lightPos[2]);
+            }
+            else
+            {
+                return -1;
+            }
+        }
         
         ImGui::End();
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
+        
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
