@@ -14,6 +14,7 @@
 #include "VBO.h"
 #include "include/glad/glad.h"
 #include <GLFW/glfw3.h>
+#include <glm/trigonometric.hpp>
 #include <iostream>
 #include <vector>
 
@@ -110,8 +111,6 @@ int main()
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glViewport(0, 0, W_WIDTH, W_HEIGHT);
 
-    if (!loadScene(scene)) return -1;
-
     Texture floorTextures[] =
     {
         Texture("../Resources/Textures/pop_cat.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE)
@@ -124,10 +123,7 @@ int main()
 
     Texture modelTextures[] =
     {
-        Texture("../Resources/Textures/skull.jpg", "specular", 0, GL_RGBA, GL_UNSIGNED_BYTE)
-};
-
-    Texture jetTextures[] = { Texture("../Resources/Textures/jet.jpg", "specular", 0, GL_RGB, GL_UNSIGNED_BYTE) };
+        Texture("../Resources/Textures/color3.png", "diffuse", 0, GL_RGB, GL_UNSIGNED_BYTE) };
 
     Shader shaderProgram("../Resources/Shaders/default.vert",
                          "../Resources/Shaders/default.frag");
@@ -146,10 +142,7 @@ int main()
     Mesh cube(cubeVerts, cubeInd, tex2);
 
     std::vector<Texture> modelTex(modelTextures, modelTextures + sizeof(modelTextures) / sizeof(Texture));
-    Model model("../Resources/Models/skull.obj", modelTex);
-
-    std::vector<Texture> jetTex(jetTextures, jetTextures + sizeof(jetTextures) / sizeof(Texture));
-    Model jet("../Resources/Models/jet.obj", jetTex);
+    Model model("../Resources/Models/jetobj.obj", modelTex);
 
     std::vector<Vertex> lightVerts(lightVertices, lightVertices + sizeof(lightVertices) / sizeof(Vertex));
     std::vector<GLuint> lightInd(lightIndices, lightIndices + sizeof(lightIndices) / sizeof(GLuint));
@@ -247,17 +240,11 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, cubeModel.data());
         cube.Draw(shaderProgram, camera);
 
-        matrix4 jetModel = createIdentityMatrix();
-        jetModel = multiplyMatrices(jetModel, createTranslationMatrix(0.f, 0.f, 5.f));
-        shaderProgram.Activate();
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, jetModel.data());
-        jet.Draw(shaderProgram, camera);
-
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
         glStencilMask(scene.skullSelected ? 0xFF : 0x00);
         matrix4 skullModel = createIdentityMatrix();
-        skullModel = multiplyMatrices(createRotationMatrixX(
-                                          glm::radians(scene.skullRotX)),
+        skullModel = multiplyMatrices(createRotationMatrixY(
+                                          glm::radians(scene.skullRotY)),
                                       createScaleMatrix(scene.skullScale, scene.skullScale, scene.skullScale));
         shaderProgram.Activate();
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, skullModel.data());

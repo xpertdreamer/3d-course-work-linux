@@ -15,11 +15,11 @@
 
 struct SceneState
 {
-    float camPos[3] = { 0.f, 0.f, 0.f };
+    float camPos[3] = { 0.f, 0.f, 10.f };
 
     float skullPos[3] = {0.f, 0.f, 0.f};
-    float skullScale = 0.05f;
-    float skullRotX = 90.f;
+    float skullScale = 1.0f;
+    float skullRotY = -90.f;
 
     float cubePos[3] = {5.f, 0.f, 0.f};
 

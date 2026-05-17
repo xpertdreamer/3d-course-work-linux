@@ -36,13 +36,13 @@ bool saveScene(const SceneState& scene, const std::string& path)
         << scene.camPos[0] << " " << scene.camPos[1] << " " << scene.camPos[2] << " "
         << scene.skullPos[0] << " " << scene.skullPos[1] << " " << scene.skullPos[2] << " "
         << scene.skullScale << " "
-        << scene.skullRotX << " "
+        << scene.skullRotY << " "
         << scene.cubePos[0] << " " << scene.cubePos[1] << " " << scene.cubePos[2] << " "
         << scene.lightPos[0] << " " << scene.lightPos[1] << " " << scene.lightPos[2] << " "
         << scene.lightColor[0] << " " << scene.lightColor[1] << " " << scene.lightColor[2] << " " << scene.lightColor[3] << " "
         << scene.wireframe << " "
         << scene.showAxes << " "
-        << scene.skullSelected << " "
+        << scene.skullSelected
         << "\n";
     
     return true;
@@ -61,7 +61,7 @@ bool loadScene(SceneState& scene, const std::string& path)
         >> scene.camPos[0] >> scene.camPos[1] >> scene.camPos[2]
         >> scene.skullPos[0] >> scene.skullPos[1] >> scene.skullPos[2]
         >> scene.skullScale 
-        >> scene.skullRotX 
+        >> scene.skullRotY 
         >> scene.cubePos[0] >> scene.cubePos[1] >> scene.cubePos[2] 
         >> scene.lightPos[0] >> scene.lightPos[1] >> scene.lightPos[2] 
         >> scene.lightColor[0] >> scene.lightColor[1] >> scene.lightColor[2] >> scene.lightColor[3] 
