@@ -1,6 +1,7 @@
 #include "Util.h"
 #include <fstream>
 #include <iostream>
+#include <glm/glm.hpp>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "include/stb/stb_image_write.h"
@@ -42,7 +43,11 @@ bool saveScene(const SceneState& scene, const std::string& path)
         << scene.lightColor[0] << " " << scene.lightColor[1] << " " << scene.lightColor[2] << " " << scene.lightColor[3] << " "
         << scene.wireframe << " "
         << scene.showAxes << " "
-        << scene.skullSelected
+        << scene.skullSelected << " "
+        << scene.rightFlapAngle << " " << scene.rightFlapOffsetX << " " << scene.rightFlapOffsetY << " " << scene.rightFlapOffsetZ << " "
+        << scene.leftFlapAngle << " " << scene.leftFlapOffsetX << " " << scene.leftFlapOffsetY  << " " << scene.leftFlapOffsetZ << " "
+        << scene.flapScale[0] << " " << scene.flapScale[1] << " " << scene.flapScale[2]
+        << " " << scene.planeRotY
         << "\n";
     
     return true;
@@ -67,7 +72,11 @@ bool loadScene(SceneState& scene, const std::string& path)
         >> scene.lightColor[0] >> scene.lightColor[1] >> scene.lightColor[2] >> scene.lightColor[3] 
         >> scene.wireframe 
         >> scene.showAxes 
-        >> scene.skullSelected;
+        >> scene.skullSelected
+        >> scene.rightFlapAngle >> scene.rightFlapOffsetX >> scene.rightFlapOffsetY >> scene.rightFlapOffsetZ
+        >> scene.leftFlapAngle >> scene.leftFlapOffsetX >> scene.leftFlapOffsetY >> scene.leftFlapOffsetZ
+        >> scene.flapScale[0] >> scene.flapScale[1] >> scene.flapScale[2]
+        >> scene.planeRotY; 
 
     if (file.fail())
     {
@@ -76,4 +85,32 @@ bool loadScene(SceneState& scene, const std::string& path)
     }
 
     return true;
+}
+
+matrix4 makeFlapMatrix(const SceneState& scene, float signX)
+{
+    float ox = (signX > 0) ? scene.rightFlapOffsetX : scene.leftFlapOffsetX;
+    float oy = (signX > 0) ? scene.rightFlapOffsetY : scene.leftFlapOffsetY;
+    float oz = (signX > 0) ? scene.rightFlapOffsetZ : scene.leftFlapOffsetZ;
+    float angle = glm::radians(
+        (signX > 0) ? scene.rightFlapAngle : scene.leftFlapAngle
+    );
+
+    float sx = scene.flapScale[0];
+    float sy = scene.flapScale[1];
+    float sz = scene.flapScale[2];
+
+    matrix4 S = createScaleMatrix(sx, sy, sz);
+
+    matrix4 T1 = createTranslationMatrix(-sx * 0.5f, 0.f, 0.f);
+    matrix4 R = createRotationMatrixZ(angle * signX);
+
+    matrix4 T2 = createTranslationMatrix(ox * signX, oy, oz);
+
+    matrix4 Rplane = createRotationMatrixY(glm::radians(scene.planeRotY));
+
+    return multiplyMatrices(Rplane,
+           multiplyMatrices(T2,
+           multiplyMatrices(R,
+           multiplyMatrices(T1, S))));
 }

@@ -24,6 +24,50 @@ bool rightPressed = false;
 
 float skullCenter[3] = {0.f, 0.f, 0.f};
 
+Vertex flapVertices[] =
+{
+    // Передняя грань
+    Vertex{{-0.5f, -0.5f,  0.5f}, {0.f, 0.f, 1.f}, {0.8f, 0.8f, 0.8f}, {0.f, 0.f}},
+    Vertex{{ 0.5f, -0.5f,  0.5f}, {0.f, 0.f, 1.f}, {0.8f, 0.8f, 0.8f}, {1.f, 0.f}},
+    Vertex{{ 0.5f,  0.5f,  0.5f}, {0.f, 0.f, 1.f}, {0.8f, 0.8f, 0.8f}, {1.f, 1.f}},
+    Vertex{{-0.5f,  0.5f,  0.5f}, {0.f, 0.f, 1.f}, {0.8f, 0.8f, 0.8f}, {0.f, 1.f}},
+    // Задняя грань
+    Vertex{{ 0.5f, -0.5f, -0.5f}, {0.f, 0.f,-1.f}, {0.7f, 0.7f, 0.7f}, {0.f, 0.f}},
+    Vertex{{-0.5f, -0.5f, -0.5f}, {0.f, 0.f,-1.f}, {0.7f, 0.7f, 0.7f}, {1.f, 0.f}},
+    Vertex{{-0.5f,  0.5f, -0.5f}, {0.f, 0.f,-1.f}, {0.7f, 0.7f, 0.7f}, {1.f, 1.f}},
+    Vertex{{ 0.5f,  0.5f, -0.5f}, {0.f, 0.f,-1.f}, {0.7f, 0.7f, 0.7f}, {0.f, 1.f}},
+    // Верхняя грань
+    Vertex{{-0.5f,  0.5f,  0.5f}, {0.f, 1.f, 0.f}, {0.9f, 0.9f, 0.9f}, {0.f, 0.f}},
+    Vertex{{ 0.5f,  0.5f,  0.5f}, {0.f, 1.f, 0.f}, {0.9f, 0.9f, 0.9f}, {1.f, 0.f}},
+    Vertex{{ 0.5f,  0.5f, -0.5f}, {0.f, 1.f, 0.f}, {0.9f, 0.9f, 0.9f}, {1.f, 1.f}},
+    Vertex{{-0.5f,  0.5f, -0.5f}, {0.f, 1.f, 0.f}, {0.9f, 0.9f, 0.9f}, {0.f, 1.f}},
+    // Нижняя грань
+    Vertex{{-0.5f, -0.5f, -0.5f}, {0.f,-1.f, 0.f}, {0.6f, 0.6f, 0.6f}, {0.f, 0.f}},
+    Vertex{{ 0.5f, -0.5f, -0.5f}, {0.f,-1.f, 0.f}, {0.6f, 0.6f, 0.6f}, {1.f, 0.f}},
+    Vertex{{ 0.5f, -0.5f,  0.5f}, {0.f,-1.f, 0.f}, {0.6f, 0.6f, 0.6f}, {1.f, 1.f}},
+    Vertex{{-0.5f, -0.5f,  0.5f}, {0.f,-1.f, 0.f}, {0.6f, 0.6f, 0.6f}, {0.f, 1.f}},
+    // Правая грань
+    Vertex{{ 0.5f, -0.5f,  0.5f}, {1.f, 0.f, 0.f}, {0.75f,0.75f,0.75f},{0.f, 0.f}},
+    Vertex{{ 0.5f, -0.5f, -0.5f}, {1.f, 0.f, 0.f}, {0.75f,0.75f,0.75f},{1.f, 0.f}},
+    Vertex{{ 0.5f,  0.5f, -0.5f}, {1.f, 0.f, 0.f}, {0.75f,0.75f,0.75f},{1.f, 1.f}},
+    Vertex{{ 0.5f,  0.5f,  0.5f}, {1.f, 0.f, 0.f}, {0.75f,0.75f,0.75f},{0.f, 1.f}},
+    // Левая грань
+    Vertex{{-0.5f, -0.5f, -0.5f},{-1.f, 0.f, 0.f}, {0.75f,0.75f,0.75f},{0.f, 0.f}},
+    Vertex{{-0.5f, -0.5f,  0.5f},{-1.f, 0.f, 0.f}, {0.75f,0.75f,0.75f},{1.f, 0.f}},
+    Vertex{{-0.5f,  0.5f,  0.5f},{-1.f, 0.f, 0.f}, {0.75f,0.75f,0.75f},{1.f, 1.f}},
+    Vertex{{-0.5f,  0.5f, -0.5f},{-1.f, 0.f, 0.f}, {0.75f,0.75f,0.75f},{0.f, 1.f}},
+};
+
+GLuint flapIndices[] =
+{
+     0,  1,  2,  0,  2,  3,
+     4,  5,  6,  4,  6,  7,
+     8,  9, 10,  8, 10, 11,
+    12, 13, 14, 12, 14, 15,
+    16, 17, 18, 16, 18, 19,
+    20, 21, 22, 20, 22, 23
+};
+
 Vertex cubeVertices[] =
 {
     Vertex{{-0.25f, 0.1f,  0.25f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
@@ -123,7 +167,7 @@ int main()
 
     Texture modelTextures[] =
     {
-        Texture("../Resources/Textures/color3.png", "diffuse", 0, GL_RGB, GL_UNSIGNED_BYTE) };
+        Texture("../Resources/Textures/jet3.jpg", "diffuse", 0, GL_RGB, GL_UNSIGNED_BYTE) };
 
     Shader shaderProgram("../Resources/Shaders/default.vert",
                          "../Resources/Shaders/default.frag");
@@ -136,13 +180,21 @@ int main()
     
     Axis axis;
 
+    std::vector<Vertex> flapVerts(flapVertices,
+                                  flapVertices + sizeof(flapVertices) / sizeof(Vertex));
+    std::vector<GLuint> flapInd(flapIndices,
+                                flapIndices + sizeof(flapIndices) / sizeof(GLuint));
+    std::vector<Texture> flapTex(modelTextures,
+                                 modelTextures + sizeof(modelTextures) / sizeof(Texture));
+    Mesh flap(flapVerts, flapInd, flapTex);
+    
     std::vector<Vertex> cubeVerts(cubeVertices, cubeVertices + sizeof(cubeVertices) / sizeof(Vertex));
     std::vector<GLuint> cubeInd(cubeIndices, cubeIndices + sizeof(cubeIndices) / sizeof(GLuint));
     std::vector<Texture> tex2(cubeTextures, cubeTextures + sizeof(cubeTextures) / sizeof(Texture));
     Mesh cube(cubeVerts, cubeInd, tex2);
 
     std::vector<Texture> modelTex(modelTextures, modelTextures + sizeof(modelTextures) / sizeof(Texture));
-    Model model("../Resources/Models/jetobj.obj", modelTex);
+    Model model("../Resources/Models/jet3.obj", modelTex);
 
     std::vector<Vertex> lightVerts(lightVertices, lightVertices + sizeof(lightVertices) / sizeof(Vertex));
     std::vector<GLuint> lightInd(lightIndices, lightIndices + sizeof(lightIndices) / sizeof(GLuint));
@@ -207,6 +259,7 @@ int main()
             glEnable(GL_DEPTH_TEST);
         }
 
+
         if (!io.WantCaptureMouse)
         {
               bool rightNow = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
@@ -240,12 +293,26 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, cubeModel.data());
         cube.Draw(shaderProgram, camera);
 
+        glStencilMask(0x00);
+        shaderProgram.Activate();
+        matrix4 flopRightModel = makeFlapMatrix(scene, +1.f);
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, flopRightModel.data());
+        flap.Draw(shaderProgram, camera);
+
+        
+        matrix4 flapLeftModel = makeFlapMatrix(scene, -1.f);
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"),
+                           1, GL_FALSE, flapLeftModel.data());
+        flap.Draw(shaderProgram, camera);
+
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
         glStencilMask(scene.skullSelected ? 0xFF : 0x00);
         matrix4 skullModel = createIdentityMatrix();
-        skullModel = multiplyMatrices(createRotationMatrixY(
-                                          glm::radians(scene.skullRotY)),
-                                      createScaleMatrix(scene.skullScale, scene.skullScale, scene.skullScale));
+        skullModel = multiplyMatrices(
+            createRotationMatrixY(glm::radians(scene.planeRotY)),       
+            multiplyMatrices(
+                createRotationMatrixY(glm::radians(scene.skullRotY)),   
+                createScaleMatrix(scene.skullScale, scene.skullScale, scene.skullScale)));
         shaderProgram.Activate();
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, skullModel.data());
         model.Draw(shaderProgram, camera);
@@ -327,6 +394,20 @@ int main()
                 return -1;
             }
         }
+
+        ImGui::Separator();
+        ImGui::Text("Flaps");
+        ImGui::SliderFloat("Plane Rotation Y", &scene.planeRotY, 0.f, 360.f);
+        ImGui::Separator();
+        ImGui::SliderFloat("Right Angle", &scene.rightFlapAngle, -45.f, 45.f);
+        ImGui::SliderFloat("Right Offset X", &scene.rightFlapOffsetX, -1.f, 2.f);
+        ImGui::SliderFloat("Right Offset Y", &scene.rightFlapOffsetY, -1.f, 1.f);
+        ImGui::SliderFloat("Right Offset Z", &scene.rightFlapOffsetZ, -1.f, 2.f);
+        ImGui::Separator();
+        ImGui::SliderFloat("Left Angle", &scene.leftFlapAngle, -45.f, 45.f);
+        ImGui::SliderFloat("Left Offset X", &scene.leftFlapOffsetX, -1.f, 2.f);
+        ImGui::SliderFloat("Left Offset Y", &scene.leftFlapOffsetY, -1.f, 1.f);
+        ImGui::SliderFloat("Left Offset Z", &scene.leftFlapOffsetZ, -1.f, 2.f);
         
         ImGui::End();
 
