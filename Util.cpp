@@ -47,7 +47,9 @@ bool saveScene(const SceneState& scene, const std::string& path)
         << scene.rightFlapAngle << " " << scene.rightFlapOffsetX << " " << scene.rightFlapOffsetY << " " << scene.rightFlapOffsetZ << " "
         << scene.leftFlapAngle << " " << scene.leftFlapOffsetX << " " << scene.leftFlapOffsetY  << " " << scene.leftFlapOffsetZ << " "
         << scene.flapScale[0] << " " << scene.flapScale[1] << " " << scene.flapScale[2]
-        << " " << scene.planeRotY
+        << " " << scene.planeRotY << " " << scene.planeRotX << " " << scene.planeRotZ
+        << " " << scene.nozzleOffset[0] << " " << scene.nozzleOffset[1] << " " << scene.nozzleOffset[2]
+        << " " << scene.rightFlapSelected << " " << scene.rightFlapSelected
         << "\n";
     
     return true;
@@ -76,7 +78,9 @@ bool loadScene(SceneState& scene, const std::string& path)
         >> scene.rightFlapAngle >> scene.rightFlapOffsetX >> scene.rightFlapOffsetY >> scene.rightFlapOffsetZ
         >> scene.leftFlapAngle >> scene.leftFlapOffsetX >> scene.leftFlapOffsetY >> scene.leftFlapOffsetZ
         >> scene.flapScale[0] >> scene.flapScale[1] >> scene.flapScale[2]
-        >> scene.planeRotY; 
+        >> scene.planeRotY >> scene.planeRotX >> scene.planeRotZ
+        >> scene.nozzleOffset[0] >> scene.nozzleOffset[1] >> scene.nozzleOffset[2]
+        >> scene.rightFlapSelected >> scene.leftFlapSelected;
 
     if (file.fail())
     {
@@ -107,7 +111,11 @@ matrix4 makeFlapMatrix(const SceneState& scene, float signX)
 
     matrix4 T2 = createTranslationMatrix(ox * signX, oy, oz);
 
-    matrix4 Rplane = createRotationMatrixY(glm::radians(scene.planeRotY));
+    matrix4 Rplane = multiplyMatrices(
+        createRotationMatrixY(glm::radians(scene.planeRotY)),
+        multiplyMatrices(
+            createRotationMatrixX(glm::radians(scene.planeRotX)),
+            createRotationMatrixZ(glm::radians(scene.planeRotZ))));
 
     return multiplyMatrices(Rplane,
            multiplyMatrices(T2,

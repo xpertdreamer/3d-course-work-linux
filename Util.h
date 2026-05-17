@@ -44,6 +44,13 @@ struct SceneState
     float flapScale[3] = { 0.6f, 0.08f, 0.25f };
 
     float planeRotY = 0.f;
+    float planeRotX = 0.f;
+    float planeRotZ = 0.f;
+
+    float nozzleOffset[3] = {-1.281f, 0.f, 2.f};
+
+    bool rightFlapSelected = false;
+    bool leftFlapSelected = false;
 };
 
 void saveScreenshot();

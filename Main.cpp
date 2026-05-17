@@ -17,12 +17,14 @@
 #include <glm/trigonometric.hpp>
 #include <iostream>
 #include <vector>
+#include "Flame.h"
 
 SceneState scene;
 
 bool rightPressed = false;
 
-float skullCenter[3] = {0.f, 0.f, 0.f};
+float rightFlapCenter[3] = {0.f, 0.f, 0.f};
+float leftFlapCenter[3] = {0.f, 0.f, 0.f};
 
 Vertex flapVertices[] =
 {
@@ -155,11 +157,6 @@ int main()
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glViewport(0, 0, W_WIDTH, W_HEIGHT);
 
-    Texture floorTextures[] =
-    {
-        Texture("../Resources/Textures/pop_cat.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE)
-    };
-
     Texture cubeTextures[] =
     {
         Texture("../Resources/Textures/pop.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE)
@@ -177,8 +174,11 @@ int main()
                        "../Resources/Shaders/light.frag");
     Shader axisShader("../Resources/Shaders/axis.vert",
                       "../Resources/Shaders/axis.frag");
+    Shader flameShader("../Resources/Shaders/flame.vert",
+                      "../Resources/Shaders/flame.frag");
     
     Axis axis;
+    Flame flame;
 
     std::vector<Vertex> flapVerts(flapVertices,
                                   flapVertices + sizeof(flapVertices) / sizeof(Vertex));
@@ -259,6 +259,37 @@ int main()
             glEnable(GL_DEPTH_TEST);
         }
 
+        glStencilMask(0x00);
+        glStencilFunc(GL_ALWAYS, 0, 0xFF);
+        shaderProgram.Activate();
+        
+        matrix4 cubeModel = createIdentityMatrix();
+        cubeModel = multiplyMatrices(cubeModel, createTranslationMatrix(scene.cubePos[0], scene.cubePos[1], scene.cubePos[2]));
+        float timeRot = glfwGetTime();
+        cubeModel = multiplyMatrices(cubeModel, createRotationMatrixY(timeRot));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, cubeModel.data());
+        cube.Draw(shaderProgram, camera);
+
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(scene.rightFlapSelected ? 0xFF : 0x00);
+        shaderProgram.Activate();
+        matrix4 flopRightModel = makeFlapMatrix(scene, +1.f);
+        rightFlapCenter[0] = flopRightModel[12];
+        rightFlapCenter[1] = flopRightModel[13];
+        rightFlapCenter[2] = flopRightModel[14];
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, flopRightModel.data());
+        flap.Draw(shaderProgram, camera);
+
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(scene.leftFlapSelected ? 0xFF : 0x00);
+        shaderProgram.Activate();
+        matrix4 flapLeftModel = makeFlapMatrix(scene, -1.f);
+        leftFlapCenter[0] = flapLeftModel[12];
+        leftFlapCenter[1] = flapLeftModel[13];
+        leftFlapCenter[2] = flapLeftModel[14];
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"),
+                           1, GL_FALSE, flapLeftModel.data());
+        flap.Draw(shaderProgram, camera);
 
         if (!io.WantCaptureMouse)
         {
@@ -270,52 +301,63 @@ int main()
 
                   Ray ray = screenToRay(mX, mY, W_WIDTH, W_HEIGHT, camera.cameraMatrix, camera.Position);
 
-                  bool hitSkull = rayIntersectsSphere(ray, skullCenter, 0.05f);
+                  bool hitLeft = rayIntersectsSphere(ray, leftFlapCenter, 0.6f);
+                  bool hitRight = rayIntersectsSphere(ray, rightFlapCenter, 0.6f);
 
-                  if (hitSkull)
+                  if (hitLeft)
                   {
-                      scene.skullSelected = !scene.skullSelected;
+                      scene.leftFlapSelected = !scene.leftFlapSelected;
+                  }
+                  else if (hitRight)
+                  {
+                      scene.rightFlapSelected = !scene.rightFlapSelected;
                   }
                   else
                   {
-                      scene.skullSelected = false;
+                      scene.leftFlapSelected = false;
+                      scene.rightFlapSelected = false;
                   }
               }
               rightPressed = rightNow;
         }
 
-        glStencilMask(0x00);
-        matrix4 cubeModel = createIdentityMatrix();
-        cubeModel = multiplyMatrices(cubeModel, createTranslationMatrix(scene.cubePos[0], scene.cubePos[1], scene.cubePos[2]));
-        float timeRot = glfwGetTime();
-        cubeModel = multiplyMatrices(cubeModel, createRotationMatrixY(timeRot));
-        shaderProgram.Activate();
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, cubeModel.data());
-        cube.Draw(shaderProgram, camera);
-
-        glStencilMask(0x00);
-        shaderProgram.Activate();
-        matrix4 flopRightModel = makeFlapMatrix(scene, +1.f);
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, flopRightModel.data());
-        flap.Draw(shaderProgram, camera);
-
-        
-        matrix4 flapLeftModel = makeFlapMatrix(scene, -1.f);
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"),
-                           1, GL_FALSE, flapLeftModel.data());
-        flap.Draw(shaderProgram, camera);
-
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
         glStencilMask(scene.skullSelected ? 0xFF : 0x00);
         matrix4 skullModel = createIdentityMatrix();
         skullModel = multiplyMatrices(
-            createRotationMatrixY(glm::radians(scene.planeRotY)),       
+            createRotationMatrixY(glm::radians(scene.planeRotY)),
             multiplyMatrices(
-                createRotationMatrixY(glm::radians(scene.skullRotY)),   
-                createScaleMatrix(scene.skullScale, scene.skullScale, scene.skullScale)));
+                createRotationMatrixX(glm::radians(scene.planeRotX)),
+                multiplyMatrices(
+                    createRotationMatrixZ(glm::radians(scene.planeRotZ)),
+                    multiplyMatrices(
+                        createRotationMatrixY(glm::radians(scene.skullRotY)),
+                        createScaleMatrix(scene.skullScale, scene.skullScale, scene.skullScale)))));
         shaderProgram.Activate();
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, skullModel.data());
         model.Draw(shaderProgram, camera);
+
+        matrix4 nozzleModel = multiplyMatrices(
+            createRotationMatrixY(glm::radians(scene.planeRotY)),
+            multiplyMatrices(
+                createRotationMatrixX(glm::radians(scene.planeRotX)),
+                multiplyMatrices(
+                    createRotationMatrixZ(glm::radians(scene.planeRotZ)),
+                    createTranslationMatrix(
+                        scene.nozzleOffset[0],
+                        scene.nozzleOffset[1],
+                        scene.nozzleOffset[2]))));
+        nozzleModel = multiplyMatrices(nozzleModel, createRotationMatrixZ(glm::radians(90.f)));
+        nozzleModel = multiplyMatrices(nozzleModel, createScaleMatrix(0.4f, 0.4f, 0.4f));
+        matrix4 nozzleModel2 = multiplyMatrices(nozzleModel, createTranslationMatrix(0.f, 0.f, 0.8f));
+        
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        glDepthMask(GL_FALSE);
+        flame.Draw(flameShader, camera, nozzleModel, (float)glfwGetTime() * 10);
+        flame.Draw(flameShader, camera, nozzleModel2, (float)glfwGetTime() * 10);
+        glDepthMask(GL_TRUE);
+        glDisable(GL_BLEND);
         
         glStencilMask(0x00);
         lightShader.Activate();
@@ -327,10 +369,15 @@ int main()
         glDisable(GL_DEPTH_TEST);
         outliningProgram.Activate();
         glUniform1f(glGetUniformLocation(outliningProgram.ID, "outlining"), 0.08f);
-        if (scene.skullSelected) {
+        if (scene.rightFlapSelected) {
             glUniformMatrix4fv(glGetUniformLocation(outliningProgram.ID, "model"),
-                               1, GL_FALSE, skullModel.data());
-            model.Draw(outliningProgram, camera);
+                               1, GL_FALSE, flopRightModel.data());
+            flap.Draw(outliningProgram, camera);
+        }
+        if (scene.leftFlapSelected) {
+            glUniformMatrix4fv(glGetUniformLocation(outliningProgram.ID, "model"),
+                               1, GL_FALSE, flapLeftModel.data());
+            flap.Draw(outliningProgram, camera);
         }
 
         glStencilMask(0xFF);
@@ -343,7 +390,8 @@ int main()
             if (scene.wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
-        if (scene.skullSelected) ImGui::Text("Selected: Skull");
+        if (scene.leftFlapSelected) ImGui::Text("Selected: Left Flap");
+        else if (scene.rightFlapSelected) ImGui::Text("Selected: Right Flap");
         else ImGui::Text("Selected: None");
 
         ImGui::Separator();
@@ -396,21 +444,21 @@ int main()
         }
 
         ImGui::Separator();
-        ImGui::Text("Flaps");
+        ImGui::Text("Jet");
+        ImGui::SliderFloat("Plane Rotation X", &scene.planeRotX, 0.f, 360.f);
         ImGui::SliderFloat("Plane Rotation Y", &scene.planeRotY, 0.f, 360.f);
+        ImGui::SliderFloat("Plane Rotation Z", &scene.planeRotZ, 0.f, 360.f);
         ImGui::Separator();
-        ImGui::SliderFloat("Right Angle", &scene.rightFlapAngle, -45.f, 45.f);
-        ImGui::SliderFloat("Right Offset X", &scene.rightFlapOffsetX, -1.f, 2.f);
-        ImGui::SliderFloat("Right Offset Y", &scene.rightFlapOffsetY, -1.f, 1.f);
-        ImGui::SliderFloat("Right Offset Z", &scene.rightFlapOffsetZ, -1.f, 2.f);
+        ImGui::Text("Flaps");
+        ImGui::BeginDisabled(!scene.rightFlapSelected);
+        ImGui::SliderFloat("Right Angle", &scene.rightFlapAngle, -10.f, 10.f);
+        ImGui::EndDisabled();
         ImGui::Separator();
-        ImGui::SliderFloat("Left Angle", &scene.leftFlapAngle, -45.f, 45.f);
-        ImGui::SliderFloat("Left Offset X", &scene.leftFlapOffsetX, -1.f, 2.f);
-        ImGui::SliderFloat("Left Offset Y", &scene.leftFlapOffsetY, -1.f, 1.f);
-        ImGui::SliderFloat("Left Offset Z", &scene.leftFlapOffsetZ, -1.f, 2.f);
+        ImGui::BeginDisabled(!scene.leftFlapSelected);
+        ImGui::SliderFloat("Left Angle", &scene.leftFlapAngle, -10.f, 10.f);
+        ImGui::EndDisabled();
         
         ImGui::End();
-
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         
