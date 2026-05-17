@@ -9,8 +9,7 @@ struct Ray
     float direction[3];
 };
 
-inline Ray screenToRay
-(
+inline Ray screenToRay(
     double mouseX,
     double mouseY,
     int screenW,
@@ -20,23 +19,42 @@ inline Ray screenToRay
 )
 {
     float ndX = (2.f * mouseX) / screenW - 1.f;
-    float ndY = -(2.f * mouseX) / screenW + 1.f;
-    float clipRay[4] = {ndX, ndY, -1.f, 1.f};
-    
+    float ndY = 1.f - (2.f * mouseY) / screenH;
+
+    float clipRay[4] = { ndX, ndY, -1.f, 1.f };
+
     matrix4 invCam;
     invertMatrix(camMatrix, invCam);
 
     float worldRay[4];
     mulMat4Vec4(invCam, clipRay, worldRay);
 
-    float dir[3] = {worldRay[0], worldRay[1], worldRay[2]};
-    float len = std::sqrt(dir[0]*dir[0] + dir[1]*dir[1] + dir[2]*dir[2]);
-    if (len > 0) { dir[0]/=len; dir[1]/=len; dir[2]/=len; }
+    worldRay[0] /= worldRay[3];
+    worldRay[1] /= worldRay[3];
+    worldRay[2] /= worldRay[3];
+
+    float dir[3] =
+    {
+        worldRay[0] - camPos[0],
+        worldRay[1] - camPos[1],
+        worldRay[2] - camPos[2]
+    };
+
+    float len = std::sqrt(
+        dir[0]*dir[0] +
+        dir[1]*dir[1] +
+        dir[2]*dir[2]
+    );
+
+    dir[0] /= len;
+    dir[1] /= len;
+    dir[2] /= len;
 
     Ray ray;
     ray.origin[0] = camPos[0];
     ray.origin[1] = camPos[1];
     ray.origin[2] = camPos[2];
+
     ray.direction[0] = dir[0];
     ray.direction[1] = dir[1];
     ray.direction[2] = dir[2];
