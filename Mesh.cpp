@@ -64,5 +64,5 @@ void Mesh::Draw
     glUniform3f(glGetUniformLocation(shader.ID, "camPos"), camera.Position[0], camera.Position[1], camera.Position[2]);
 	camera.Matrix(shader, "camMatrix");
 
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    glDrawElementsInstanced(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0, 50);
 }

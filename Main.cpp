@@ -16,10 +16,12 @@
 #include <GLFW/glfw3.h>
 #include <glm/trigonometric.hpp>
 #include <iostream>
+#include <string>
 #include <vector>
 #include "Flame.h"
 
 SceneState scene;
+std::string bench;
 
 bool rightPressed = false;
 
@@ -228,6 +230,11 @@ int main()
 
     Camera camera(W_WIDTH, W_HEIGHT, scene.camPos);
 
+    double prevTime = 0.0;
+    double crntTime = 0.0;
+    double timeDiff;
+    unsigned int counter = 0;
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -237,6 +244,18 @@ int main()
     
     while (!glfwWindowShouldClose(window))
     {
+        crntTime = glfwGetTime();
+        timeDiff = crntTime - prevTime;
+        counter++;
+        if (timeDiff >= 1.0 / 30.0)
+        {
+            std::string FPS = std::to_string((1.0 / timeDiff) * counter);
+            std::string ms = std::to_string((timeDiff / counter) * 1000);
+            bench = FPS + "FPS / " + ms + "ms";
+            prevTime = crntTime;
+            counter = 0;
+        }
+        
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -385,6 +404,8 @@ int main()
         glEnable(GL_DEPTH_TEST);
 
         ImGui::Begin("GUI");
+        ImGui::Text("%s", bench.c_str());
+        ImGui::Separator();
         if (ImGui::Checkbox("Wireframe", &scene.wireframe))
         {
             if (scene.wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -451,11 +472,11 @@ int main()
         ImGui::Separator();
         ImGui::Text("Flaps");
         ImGui::BeginDisabled(!scene.rightFlapSelected);
-        ImGui::SliderFloat("Right Angle", &scene.rightFlapAngle, -10.f, 10.f);
+        ImGui::SliderFloat("Right Angle", &scene.rightFlapAngle, -20.f, 20.f);
         ImGui::EndDisabled();
         ImGui::Separator();
         ImGui::BeginDisabled(!scene.leftFlapSelected);
-        ImGui::SliderFloat("Left Angle", &scene.leftFlapAngle, -10.f, 10.f);
+        ImGui::SliderFloat("Left Angle", &scene.leftFlapAngle, -20.f, 20.f);
         ImGui::EndDisabled();
         
         ImGui::End();

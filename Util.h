@@ -16,7 +16,7 @@
 
 struct SceneState
 {
-    float camPos[3] = { 0.f, 0.f, 10.f };
+    float camPos[3] = { 0.f, 2.f, 5.f };
 
     float skullPos[3] = {0.f, 0.f, 0.f};
     float skullScale = 0.5f;
@@ -32,22 +32,22 @@ struct SceneState
     bool  skullSelected = false;
 
     float rightFlapAngle = 0.f;
-    float rightFlapOffsetX = 0.4f;
-    float rightFlapOffsetY = 0.f;
-    float rightFlapOffsetZ = 0.f;
+    float rightFlapOffsetX = -0.531f;
+    float rightFlapOffsetY = 0.654f;
+    float rightFlapOffsetZ = 0.786f;
     
     float leftFlapAngle = 0.f;
-    float leftFlapOffsetX = 0.4f;
-    float leftFlapOffsetY = 0.f;
-    float leftFlapOffsetZ = 0.f; 
+    float leftFlapOffsetX = 0.529f;
+    float leftFlapOffsetY = 0.657f;
+    float leftFlapOffsetZ = -0.789f;
     
-    float flapScale[3] = { 0.6f, 0.08f, 0.25f };
+    float flapScale[3] = { 0.3f, 0.003f, 0.51f };
 
     float planeRotY = 0.f;
     float planeRotX = 0.f;
     float planeRotZ = 0.f;
 
-    float nozzleOffset[3] = {-1.281f, 0.f, 2.f};
+    float nozzleOffset[3] = {-1.281f, 0.579f, -0.165f};
 
     bool rightFlapSelected = false;
     bool leftFlapSelected = false;
