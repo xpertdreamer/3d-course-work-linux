@@ -1,6 +1,8 @@
 #ifndef OBJLOADER_H
 #define OBJLOADER_H
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "VBO.h"
 #include "shaderClass.h"
 #include <cstring>

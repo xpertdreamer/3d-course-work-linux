@@ -3,6 +3,7 @@
 
 #include "math.h"
 #include <array>
+#include <cmath>
 
 using matrix4 = std::array<float, 16>;
 
