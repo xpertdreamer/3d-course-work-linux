@@ -163,23 +163,23 @@ int main()
 
     Texture cubeTextures[] =
     {
-        Texture("../Resources/Textures/pop.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE)
+        Texture("../../Resources/Textures/pop.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE)
     };
 
     Texture modelTextures[] =
     {
-        Texture("../Resources/Textures/jet3.jpg", "diffuse", 0, GL_RGB, GL_UNSIGNED_BYTE) };
+        Texture("../../Resources/Textures/jet3.jpg", "diffuse", 0, GL_RGB, GL_UNSIGNED_BYTE) };
 
-    Shader shaderProgram("../Resources/Shaders/default.vert",
-                         "../Resources/Shaders/default.frag");
-    Shader outliningProgram("../Resources/Shaders/outlining.vert",
-                            "../Resources/Shaders/outlining.frag");
-    Shader lightShader("../Resources/Shaders/light.vert",
-                       "../Resources/Shaders/light.frag");
-    Shader axisShader("../Resources/Shaders/axis.vert",
-                      "../Resources/Shaders/axis.frag");
-    Shader flameShader("../Resources/Shaders/flame.vert",
-                      "../Resources/Shaders/flame.frag");
+    Shader shaderProgram("../../Resources/Shaders/default.vert",
+                         "../../Resources/Shaders/default.frag");
+    Shader outliningProgram("../../Resources/Shaders/outlining.vert",
+                            "../../Resources/Shaders/outlining.frag");
+    Shader lightShader("../../Resources/Shaders/light.vert",
+                       "../../Resources/Shaders/light.frag");
+    Shader axisShader("../../Resources/Shaders/axis.vert",
+                      "../../Resources/Shaders/axis.frag");
+    Shader flameShader("../../Resources/Shaders/flame.vert",
+                      "../../Resources/Shaders/flame.frag");
     
     Axis axis;
     Flame flame;
@@ -198,7 +198,7 @@ int main()
     Mesh cube(cubeVerts, cubeInd, tex2);
 
     std::vector<Texture> modelTex(modelTextures, modelTextures + sizeof(modelTextures) / sizeof(Texture));
-    Model model("../Resources/Models/jet3.obj", modelTex);
+    Model model("../../Resources/Models/jet3.obj", modelTex);
 
     std::vector<Vertex> lightVerts(lightVertices, lightVertices + sizeof(lightVertices) / sizeof(Vertex));
     std::vector<GLuint> lightInd(lightIndices, lightIndices + sizeof(lightIndices) / sizeof(GLuint));
